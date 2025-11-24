@@ -66,15 +66,23 @@ class LongShortTermMemory(nn.Module):
         return h_next, c_next
 
 class RecurrentNeuralNetworkDecoder(nn.Module):
-    def __init__(self, rnn_block, hidden_size, output_size):
+    def __init__(self, rnn_type, network, hidden_size, output_size):
         """
         Args:
-            rnn_block: RNNCell, GRUCell, LSTMCell 
+            rnn_type: 'rnn', 'gru', 'lstm'
+            network: nn.Module, the underlying network for RNN cells
             hidden_size: int
             output_size: int
         """
         super().__init__()
-
+        if rnn_type == 'rnn':
+            rnn_block = RecurrentNeuralNetwork(network)
+        elif rnn_type == 'gru':
+            rnn_block = GatedRecurrentUnit(network)
+        elif rnn_type == 'lstm':
+            rnn_block = LongShortTermMemory(network)
+        else:
+            raise ValueError(f"Unsupported rnn_type: {rnn_type}")
         self.rnn_block = rnn_block
         self.classifier = nn.Linear(hidden_size, output_size)
         self.hidden_size = hidden_size
