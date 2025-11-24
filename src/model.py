@@ -115,4 +115,16 @@ class MADE(nn.Module):
                 x[:, m+i] = torch.bernoulli(s_hat[:, m+i]) * 2 - 1
         return x
     
+
+class NeuralNetworkDecoder(nn.module):
+    def __init__(self, sequential_model, embedding_model):
+        super().__init__()
+
+        self.seq = sequential_model
+        self.emb = embedding_model
+
+    def forward(self, x):
+        x = self.emb(x)
+        x = self.seq(x)
+
     
