@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from .utils import MaskedLinear
+from .module import MaskedLinear
 
 
 class MLP(nn.module):
@@ -31,8 +31,8 @@ class MLP(nn.module):
 
         self.net = nn.Sequential(*[net])
     
-    def forward(self):
-        return self.net
+    def forward(self, x):
+        return self.net(x)
 
 
 class MADE(nn.Module):
@@ -116,15 +116,5 @@ class MADE(nn.Module):
         return x
     
 
-class NeuralNetworkDecoder(nn.module):
-    def __init__(self, sequential_model, embedding_model):
-        super().__init__()
-
-        self.seq = sequential_model
-        self.emb = embedding_model
-
-    def forward(self, x):
-        x = self.emb(x)
-        x = self.seq(x)
 
     

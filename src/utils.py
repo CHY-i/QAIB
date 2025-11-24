@@ -1,26 +1,45 @@
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 
-class MaskedLinear(nn.Linear):
-    """ same as Linear except has a configurable mask on the weights """
+
+def surface_data_to_3D(x):
+    '''convert surface data shape to [batch, d+1, d+1, round+1]'''
     
-    def __init__(self, n, in_features, out_features, self_connection=True, bias=True):
-        '''n: 自旋个数,
-           n*in: 总的输入个数,
-           n*out: 总的输出个数,
-         '''
-        super(MaskedLinear, self).__init__(n * in_features, n * out_features, bias)
-        #定义一个名为mask个的buffer     
-        if self_connection:
-            self.register_buffer('mask', torch.tril(torch.ones(n, n)))#注意 pytorch中是用行向量乘W.T定义的线性运算
-        else:
-            self.register_buffer('mask', torch.tril(torch.ones(n, n), diagonal=-1))
-        self.mask = torch.cat([self.mask] * in_features, dim=1)
-        self.mask = torch.cat([self.mask] * out_features, dim=0)
-        self.weight.data *= self.mask
-        if n !=1 :
-            self.weight.data *= torch.sqrt(self.mask.numel() / self.mask.sum())
-    def forward(self, input):
-            return F.linear(input, self.weight*self.mask, self.bias)
+    None
+
+
+def adj_matrix(pcm):
+    return torch.sparse.mm(pcm, pcm.T)   
+
     
+def PCM(dem, padding_nrow=0):
+    
+    pcm = torch.zeros([dem.num_detectors, dem.num_errors])
+    l = torch.zeros([dem.num_observables, dem.num_errors])
+    
+   
+    for i, e in enumerate(dem[:dem.num_errors]):
+        Dec = e.targets_copy()
+
+        for j in range(len(Dec)):
+            D = str(Dec[j])
+            if D.startswith('D'):
+                idx = int(D[1:])
+                pcm[idx, i] = 1.#e.args_copy()[0]
+
+            if D.startswith('L'):
+                idx = int(D[1:])
+                l[idx, i] = 1
+    if padding_nrow:
+        padding_matrix = torch.zeros(padding_nrow, dem.num_errors)
+        pcm = torch.vstack([padding_matrix, pcm, padding_matrix])
+    return  pcm, l
+
+def softmax_nonzero_rows(X):
+    for i in range(X.shape[0]): 
+        row = X[i, :]
+        mask = row != 0     
+        nonzero_values = row[mask]
+        exp_values = torch.exp(nonzero_values)
+        softmax_values = exp_values / torch.sum(exp_values) 
+        X[i, mask] = softmax_values
+    return X

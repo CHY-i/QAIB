@@ -40,7 +40,5 @@ def generate_bb_data(num_shots,
     dataset = TensorDataset(dets, obvs)
     return  dataset
 
-def surface_data_to_3D(x):
-    '''convert surface data shape to [batch, d+1, d+1, round+1]'''
-    
+def google_data():
     None
