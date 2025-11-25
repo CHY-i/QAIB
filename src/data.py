@@ -15,8 +15,6 @@ def generate_sureface_data(d, r, num_shots, error_prob=0.001, seed=85173):
     dem = circuit.detector_error_model(decompose_errors=False, flatten_loops=True)
     sampler = dem.compile_sampler(seed=seed)
     dets, obvs, _ = sampler.sample(shots=num_shots)
-
-
     dets, obvs = torch.from_numpy(dets*1.)
     dataset = TensorDataset(dets, obvs)
     return  dataset

@@ -35,6 +35,24 @@ class MLP(nn.module):
         return self.net(x)
 
 
+class ThreeDCNN(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, activator='relu'):
+        super(ThreeDCNN, self).__init__()
+        self.conv3d = nn.Conv3d(in_channels, out_channels, kernel_size, stride, padding)
+        if activator == 'relu':
+            self.activator = nn.ReLU()
+        elif activator == 'tanh':
+            self.activator = nn.Tanh()
+        else:
+            self.activator = None
+
+    def forward(self, x):
+        x = self.conv3d(x)
+        if self.activator:
+            x = self.activator(x)
+        return x
+
+
 class MADE(nn.Module):
     def __init__(self, n, depth, width, activator='tanh', residual=False):
         '''
